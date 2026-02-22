@@ -1,0 +1,2 @@
+# Tests directory
+# Contains unit tests and property-based tests using Vitest and fast-check
