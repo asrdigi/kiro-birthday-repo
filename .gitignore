@@ -104,3 +104,11 @@ pids
 node_modules/.cache/puppeteer/
 .config/google-chrome/
 .config/chromium/
+# Temporary test files (prevent future clutter)
+send-to-*.js
+*-messages.txt
+test-mode-*.js
+debug-personal-*.js
+my-*.js
+quick-*.js
+temp-*.js
