@@ -147,19 +147,26 @@ export class Scheduler {
           if (!whatsappReady) {
             // Give WhatsApp more time to authenticate if session exists
             logger.info('Scheduler', 'WhatsApp not ready, waiting for authentication...');
+            logger.info('Scheduler', 'Please scan the QR code with your phone if displayed');
 
-            // Wait up to 30 seconds for WhatsApp to be ready
-            for (let i = 0; i < 30; i++) {
+            // Wait up to 120 seconds (2 minutes) for WhatsApp to be ready
+            // This gives user enough time to scan QR code
+            for (let i = 0; i < 120; i++) {
               await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
               whatsappReady = await this.whatsappClient.isReady();
 
               if (whatsappReady) {
                 break;
               }
+
+              // Log progress every 15 seconds
+              if ((i + 1) % 15 === 0) {
+                logger.info('Scheduler', `Still waiting for WhatsApp authentication... (${i + 1}s elapsed)`);
+              }
             }
 
             if (!whatsappReady) {
-              throw new Error('WhatsApp client is not ready after 30 seconds');
+              throw new Error('WhatsApp client is not ready after 120 seconds. Please scan the QR code.');
             }
           }
 
