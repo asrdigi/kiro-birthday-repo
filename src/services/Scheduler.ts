@@ -121,7 +121,7 @@ export class Scheduler {
    * Checks that all required services are properly authenticated and ready:
    * - DataLoader (Google Sheets API)
    * - MessageGenerator (ChatGPT API)
-   * - WhatsAppClient (WhatsApp Web)
+   * - WhatsAppClient (WhatsApp Web) - skipped in test mode
    * 
    * Halts execution if any authentication fails.
    * 
@@ -133,29 +133,38 @@ export class Scheduler {
       logger.info('Scheduler', 'Validating API connections...');
 
       try {
-        // Validate WhatsApp client is ready (with retry for authentication)
-        let whatsappReady = await this.whatsappClient.isReady();
+        // Check if we're in test mode
+        const testMode = process.env.WHATSAPP_TEST_MODE === 'true';
+        const completeTestMode = process.env.COMPLETE_TEST_MODE === 'true';
 
-        if (!whatsappReady) {
-          // Give WhatsApp more time to authenticate if session exists
-          logger.info('Scheduler', 'WhatsApp not ready, waiting for authentication...');
+        if (testMode || completeTestMode) {
+          logger.info('Scheduler', 'Running in TEST MODE - WhatsApp validation skipped');
+          logger.info('Scheduler', 'WhatsApp client validation skipped (test mode)');
+        } else {
+          // Validate WhatsApp client is ready (with retry for authentication)
+          let whatsappReady = await this.whatsappClient.isReady();
 
-          // Wait up to 30 seconds for WhatsApp to be ready
-          for (let i = 0; i < 30; i++) {
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
-            whatsappReady = await this.whatsappClient.isReady();
+          if (!whatsappReady) {
+            // Give WhatsApp more time to authenticate if session exists
+            logger.info('Scheduler', 'WhatsApp not ready, waiting for authentication...');
 
-            if (whatsappReady) {
-              break;
+            // Wait up to 30 seconds for WhatsApp to be ready
+            for (let i = 0; i < 30; i++) {
+              await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+              whatsappReady = await this.whatsappClient.isReady();
+
+              if (whatsappReady) {
+                break;
+              }
+            }
+
+            if (!whatsappReady) {
+              throw new Error('WhatsApp client is not ready after 30 seconds');
             }
           }
 
-          if (!whatsappReady) {
-            throw new Error('WhatsApp client is not ready after 30 seconds');
-          }
+          logger.info('Scheduler', 'WhatsApp client validated successfully');
         }
-
-        logger.info('Scheduler', 'WhatsApp client validated successfully');
 
         // Validate MessageGenerator by checking if it's initialized
         // (initialization happens in main.ts before scheduler starts)
