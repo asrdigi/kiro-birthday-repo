@@ -1,24 +1,24 @@
 /**
  * GoogleSheetsClient - Manages Google Sheets API authentication and connection
  * 
- * Implements OAuth 2.0 authentication using credentials from environment variables
+ * Implements Service Account authentication using credentials from environment variables
  * and provides access to the Google Sheets API for reading friend data.
  * 
  * Requirements: 6.1, 6.4, 6.5
  */
 
 import { google } from 'googleapis';
-import { OAuth2Client } from 'google-auth-library';
+import { JWT } from 'google-auth-library';
 import { logger } from '../utils/logger';
 
 /**
  * GoogleSheetsClient class for authenticating and accessing Google Sheets API
  * 
- * Uses OAuth 2.0 credentials (client ID, client secret, refresh token) from
+ * Uses Service Account credentials (client email and private key) from
  * environment variables to authenticate with Google Sheets API.
  */
 export class GoogleSheetsClient {
-  private oauth2Client: OAuth2Client | null = null;
+  private jwtClient: JWT | null = null;
   private sheetsApi: any = null;
   private sheetId: string;
 
@@ -36,13 +36,11 @@ export class GoogleSheetsClient {
   }
 
   /**
-   * Initializes OAuth 2.0 authentication and connects to Google Sheets API
+   * Initializes Service Account authentication and connects to Google Sheets API
    * 
    * Loads credentials from environment variables:
-   * - GOOGLE_CLIENT_ID: OAuth 2.0 client ID
-   * - GOOGLE_CLIENT_SECRET: OAuth 2.0 client secret
-   * - GOOGLE_REFRESH_TOKEN: OAuth 2.0 refresh token
-   * - GOOGLE_REDIRECT_URI: OAuth 2.0 redirect URI (optional, defaults to localhost)
+   * - GOOGLE_SERVICE_ACCOUNT_EMAIL: Service account email address
+   * - GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: Service account private key (base64 encoded or raw)
    * 
    * @throws Error if required credentials are missing or authentication fails
    * 
@@ -51,44 +49,51 @@ export class GoogleSheetsClient {
   async authenticate(): Promise<void> {
     try {
       // Load credentials from environment variables
-      const clientId = process.env.GOOGLE_CLIENT_ID;
-      const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-      const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
-      const redirectUri = process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3000/oauth2callback';
+      const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+      const serviceAccountPrivateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY;
 
       // Validate required credentials
-      if (!clientId) {
-        throw new Error('GOOGLE_CLIENT_ID environment variable is required');
+      if (!serviceAccountEmail) {
+        throw new Error('GOOGLE_SERVICE_ACCOUNT_EMAIL environment variable is required');
       }
-      if (!clientSecret) {
-        throw new Error('GOOGLE_CLIENT_SECRET environment variable is required');
-      }
-      if (!refreshToken) {
-        throw new Error('GOOGLE_REFRESH_TOKEN environment variable is required');
+      if (!serviceAccountPrivateKey) {
+        throw new Error('GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY environment variable is required');
       }
 
-      // Create OAuth2 client
-      this.oauth2Client = new google.auth.OAuth2(
-        clientId,
-        clientSecret,
-        redirectUri
+      // Decode private key if it's base64 encoded
+      let privateKey = serviceAccountPrivateKey;
+      
+      // Replace escaped newlines with actual newlines
+      privateKey = privateKey.replace(/\\n/g, '\n');
+      
+      // If the key doesn't start with -----BEGIN, try base64 decoding
+      if (!privateKey.startsWith('-----BEGIN')) {
+        try {
+          privateKey = Buffer.from(serviceAccountPrivateKey, 'base64').toString('utf8');
+          privateKey = privateKey.replace(/\\n/g, '\n');
+        } catch (decodeError) {
+          throw new Error('Invalid private key format. Key should be either PEM format or base64 encoded.');
+        }
+      }
+
+      // Create JWT client for Service Account authentication
+      this.jwtClient = new google.auth.JWT(
+        serviceAccountEmail,
+        undefined,
+        privateKey,
+        ['https://www.googleapis.com/auth/spreadsheets.readonly']
       );
-
-      // Set credentials with refresh token
-      this.oauth2Client.setCredentials({
-        refresh_token: refreshToken
-      });
 
       // Initialize Google Sheets API
       this.sheetsApi = google.sheets({
         version: 'v4',
-        auth: this.oauth2Client
+        auth: this.jwtClient
       });
 
       // Verify authentication by making a test request
       await this.verifyConnection();
 
-      logger.info('GoogleSheetsClient', 'Successfully authenticated with Google Sheets API');
+      logger.info('GoogleSheetsClient', 'Successfully authenticated with Google Sheets API using Service Account');
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -151,6 +156,6 @@ export class GoogleSheetsClient {
    * @returns true if authenticated, false otherwise
    */
   isAuthenticated(): boolean {
-    return this.oauth2Client !== null && this.sheetsApi !== null;
+    return this.jwtClient !== null && this.sheetsApi !== null;
   }
 }

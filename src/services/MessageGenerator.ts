@@ -80,13 +80,29 @@ export class MessageGenerator {
    * @returns Formatted prompt string
    */
   private createPrompt(name: string, language: string): string {
-    return `Generate a warm, personal birthday message for ${name} in ${language}.
-The message should:
-- Be culturally appropriate for ${language} speakers
-- Be 2-3 sentences long
+    const languageMap: { [key: string]: string } = {
+      'te': 'Telugu',
+      'hi': 'Hindi',
+      'en': 'English',
+      'ta': 'Tamil',
+      'kn': 'Kannada',
+      'ml': 'Malayalam'
+    };
+    
+    const fullLanguageName = languageMap[language] || language;
+    
+    return `Generate a complete, warm birthday message for ${name} in ${fullLanguageName}.
+
+Requirements:
+- Write exactly 2-3 complete sentences
+- Use natural, conversational ${fullLanguageName} language
 - Express genuine warmth and friendship
-- Use natural, conversational language
-- Not include emojis or special formatting
+- End with proper punctuation (period, exclamation mark, etc.)
+- Make sure the message is COMPLETE and not cut off
+- Be culturally appropriate for ${fullLanguageName} speakers
+- Do not include emojis or special formatting
+
+Important: Generate the COMPLETE message. Do not truncate or cut off the message.
 
 Generate only the birthday message text, nothing else.`;
   }
@@ -108,7 +124,7 @@ Generate only the birthday message text, nothing else.`;
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful assistant that generates warm, culturally appropriate birthday messages in various languages.',
+            content: 'You are a helpful assistant that generates warm, culturally appropriate birthday messages in various languages. Always generate complete messages that end with proper punctuation.',
           },
           {
             role: 'user',
@@ -116,7 +132,7 @@ Generate only the birthday message text, nothing else.`;
           },
         ],
         temperature: 0.7,
-        max_tokens: 150,
+        max_tokens: 500, // Increased further for non-English languages like Telugu
       });
 
       const message = response.choices[0]?.message?.content?.trim();

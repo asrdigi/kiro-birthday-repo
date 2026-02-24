@@ -5,8 +5,8 @@
 
 import { Client, LocalAuth } from 'whatsapp-web.js';
 import qrcode from 'qrcode-terminal';
-import type { DeliveryResult } from '../models/types.js';
-import { logger } from '../utils/logger.js';
+import type { DeliveryResult } from '../models/types';
+import { logger } from '../utils/logger';
 
 /**
  * WhatsApp client that manages connection, authentication, and message delivery
@@ -33,16 +33,55 @@ export class WhatsAppClient {
     try {
       logger.info('WhatsAppClient', 'Initializing WhatsApp client...');
 
+      // Check if we're in test mode
+      const testMode = process.env.WHATSAPP_TEST_MODE === 'true';
+      
+      if (testMode) {
+        logger.info('WhatsAppClient', 'Running in TEST MODE - WhatsApp messages will be simulated');
+        this.isInitialized = true;
+        this.isConnected = true;
+        return;
+      }
+
       // Create client with local authentication strategy
       // Session data will be stored in .wwebjs_auth/ directory
       this.client = new Client({
         authStrategy: new LocalAuth({
-          dataPath: '.wwebjs_auth'
+          dataPath: '.wwebjs_auth',
+          clientId: 'birthday-messenger'
         }),
         puppeteer: {
           headless: true,
-          args: ['--no-sandbox', '--disable-setuid-sandbox']
-        }
+          args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--single-process',
+            '--disable-gpu',
+            '--disable-web-security',
+            '--disable-features=VizDisplayCompositor',
+            '--disable-background-timer-throttling',
+            '--disable-backgrounding-occluded-windows',
+            '--disable-renderer-backgrounding',
+            '--disable-background-networking',
+            '--no-default-browser-check',
+            '--no-first-run',
+            '--disable-default-apps',
+            '--disable-extensions',
+            '--disable-plugins',
+            '--disable-translate',
+            '--disable-ipc-flooding-protection'
+          ]
+        },
+        webVersionCache: {
+          type: 'remote',
+          remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
+        },
+        takeoverOnConflict: true,
+        takeoverTimeoutMs: 60000
       });
 
       // Set up event handlers
@@ -118,6 +157,13 @@ export class WhatsAppClient {
    * @returns DeliveryResult with success status and details
    */
   async sendMessage(number: string, message: string): Promise<DeliveryResult> {
+    // Check if we're in test mode
+    const testMode = process.env.WHATSAPP_TEST_MODE === 'true';
+    
+    if (testMode) {
+      return this.simulateMessageSending(number, message);
+    }
+
     const maxAttempts = 3;
     const retryDelayMs = 5 * 60 * 1000; // 5 minutes in milliseconds
     
@@ -201,6 +247,11 @@ export class WhatsAppClient {
    * @returns true if client is initialized and connected
    */
   async isReady(): Promise<boolean> {
+    // In test mode, always return true
+    if (process.env.WHATSAPP_TEST_MODE === 'true') {
+      return true;
+    }
+    
     return this.isInitialized && this.isConnected && this.client !== null;
   }
 
@@ -226,6 +277,34 @@ export class WhatsAppClient {
       
       throw new Error(`WhatsApp disconnection failed: ${errorMessage}`);
     }
+  }
+
+  /**
+   * Simulate message sending for test mode
+   * 
+   * @param number - WhatsApp number in E.164 format
+   * @param message - Message content to send
+   * @returns DeliveryResult with simulated success
+   */
+  private async simulateMessageSending(number: string, message: string): Promise<DeliveryResult> {
+    // Generate a fake message ID
+    const messageId = `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Log the simulated message
+    logger.info('WhatsAppClient', `[TEST MODE] Simulating message to ${number}`, {
+      recipient: number,
+      messageId,
+      messagePreview: message.substring(0, 50) + (message.length > 50 ? '...' : '')
+    });
+
+    // Simulate a small delay
+    await this.sleep(1000); // 1 second delay to simulate network
+    
+    return {
+      success: true,
+      messageId,
+      timestamp: new Date()
+    };
   }
 
   /**

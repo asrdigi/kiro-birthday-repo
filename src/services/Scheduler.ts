@@ -73,35 +73,41 @@ export class Scheduler {
       // Validate all API connections on startup
       await this.validateStartup();
 
-      // Schedule daily execution at 4:00 AM IST (Asia/Kolkata timezone)
-      // Cron format: minute hour day month weekday
-      // '0 4 * * *' means: at 4:00 AM every day
+      // Get cron schedule from environment variables
+      const cronSchedule = process.env.CRON_SCHEDULE || '0 4 * * *';
+      const timezone = process.env.SCHEDULER_TIMEZONE || 'Asia/Kolkata';
+
+      // Schedule daily execution using environment configuration
       this.cronJob = cron.schedule(
-        '0 4 * * *',
+        cronSchedule,
         async () => {
-          logger.info('Scheduler', 'Daily birthday check triggered at 4:00 AM IST');
+          logger.info('Scheduler', `Daily birthday check triggered at ${cronSchedule} ${timezone}`);
           await this.checkBirthdays();
         },
         {
           scheduled: true,
-          timezone: 'Asia/Kolkata' // IST timezone
+          timezone: timezone
         }
       );
 
-      // Schedule data refresh every 24 hours at 4:00 AM IST
+      // Schedule data refresh using the same schedule
       this.dataRefreshJob = cron.schedule(
-        '0 4 * * *',
+        cronSchedule,
         async () => {
           logger.info('Scheduler', 'Daily data refresh triggered');
           await this.refreshData();
         },
         {
           scheduled: true,
-          timezone: 'Asia/Kolkata' // IST timezone
+          timezone: timezone
         }
       );
 
-      logger.info('Scheduler', 'Scheduler started successfully. Daily execution scheduled at 4:00 AM IST');
+      // Parse cron schedule for display
+      const [minute, hour] = cronSchedule.split(' ');
+      const displayTime = `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+      
+      logger.info('Scheduler', `Scheduler started successfully. Daily execution scheduled at ${displayTime} ${timezone}`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.critical('Scheduler', 'Failed to start scheduler', { error: errorMessage });
@@ -124,32 +130,49 @@ export class Scheduler {
    * @throws Error if any API connection validation fails
    */
   private async validateStartup(): Promise<void> {
-    logger.info('Scheduler', 'Validating API connections...');
+      logger.info('Scheduler', 'Validating API connections...');
 
-    try {
-      // Validate WhatsApp client is ready
-      const whatsappReady = await this.whatsappClient.isReady();
-      if (!whatsappReady) {
-        throw new Error('WhatsApp client is not ready');
+      try {
+        // Validate WhatsApp client is ready (with retry for authentication)
+        let whatsappReady = await this.whatsappClient.isReady();
+
+        if (!whatsappReady) {
+          // Give WhatsApp more time to authenticate if session exists
+          logger.info('Scheduler', 'WhatsApp not ready, waiting for authentication...');
+
+          // Wait up to 30 seconds for WhatsApp to be ready
+          for (let i = 0; i < 30; i++) {
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+            whatsappReady = await this.whatsappClient.isReady();
+
+            if (whatsappReady) {
+              break;
+            }
+          }
+
+          if (!whatsappReady) {
+            throw new Error('WhatsApp client is not ready after 30 seconds');
+          }
+        }
+
+        logger.info('Scheduler', 'WhatsApp client validated successfully');
+
+        // Validate MessageGenerator by checking if it's initialized
+        // (initialization happens in main.ts before scheduler starts)
+        logger.info('Scheduler', 'MessageGenerator validated successfully');
+
+        // Validate DataLoader by attempting to load friends
+        // This will verify Google Sheets API connection
+        await this.dataLoader.loadFriends();
+        logger.info('Scheduler', 'DataLoader validated successfully');
+
+        logger.info('Scheduler', 'All API connections validated successfully');
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        logger.critical('Scheduler', 'Startup validation failed', { error: errorMessage });
+        throw new Error(`Startup validation failed: ${errorMessage}`);
       }
-      logger.info('Scheduler', 'WhatsApp client validated successfully');
-
-      // Validate MessageGenerator by checking if it's initialized
-      // (initialization happens in main.ts before scheduler starts)
-      logger.info('Scheduler', 'MessageGenerator validated successfully');
-
-      // Validate DataLoader by attempting to load friends
-      // This will verify Google Sheets API connection
-      await this.dataLoader.loadFriends();
-      logger.info('Scheduler', 'DataLoader validated successfully');
-
-      logger.info('Scheduler', 'All API connections validated successfully');
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.critical('Scheduler', 'Startup validation failed', { error: errorMessage });
-      throw new Error(`Startup validation failed: ${errorMessage}`);
     }
-  }
 
   /**
    * Checks all friends for birthdays and processes birthday events

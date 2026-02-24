@@ -3,13 +3,15 @@
     "version": "1.0.0",
     "description": "Automated Birthday WhatsApp Messaging System",
     "main": "dist/index.js",
-    "type": "module",
     "scripts": {
         "build": "tsc",
         "start": "node dist/index.js",
+        "start:prod": "npm run build && node dist/railway-app.js",
+        "start:railway": "node dist/railway-app.js",
         "dev": "tsx src/index.ts",
         "test": "vitest --run",
-        "test:watch": "vitest"
+        "test:watch": "vitest",
+        "railway:deploy": "npm run build"
     },
     "keywords": [
         "whatsapp",

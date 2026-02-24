@@ -40,9 +40,8 @@ dotenv.config();
  */
 function validateEnvironmentVariables(): void {
   const requiredVars = [
-    'GOOGLE_CLIENT_ID',
-    'GOOGLE_CLIENT_SECRET',
-    'GOOGLE_REFRESH_TOKEN',
+    'GOOGLE_SERVICE_ACCOUNT_EMAIL',
+    'GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY',
     'GOOGLE_SHEET_ID',
     'OPENAI_API_KEY'
   ];
@@ -74,6 +73,22 @@ function validateEnvironmentVariables(): void {
  */
 async function main() {
   logger.info('Main', 'Birthday WhatsApp Messenger starting...');
+
+  // Check if we're in complete test mode
+  const completeTestMode = process.env.COMPLETE_TEST_MODE === 'true';
+  
+  if (completeTestMode) {
+    logger.info('Main', '🧪 RUNNING IN COMPLETE TEST MODE - All external services will be simulated');
+    logger.info('Main', '📝 Test data: 2 friends with birthdays today will be simulated');
+    logger.info('Main', '💬 WhatsApp messages will be simulated (not actually sent)');
+    logger.info('Main', '🤖 OpenAI message generation will be simulated');
+    logger.info('Main', '📊 Google Sheets data will be simulated');
+    logger.info('Main', '⏰ Scheduler will run once immediately for testing, then schedule for 4 AM IST');
+    
+    // In test mode, we'll simulate a quick run
+    await runTestMode();
+    return;
+  }
 
   try {
     // Step 1: Validate required environment variables
@@ -137,6 +152,77 @@ async function main() {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logger.critical('Main', 'Failed to start application', { error: errorMessage });
+    throw error;
+  }
+}
+
+/**
+ * Run the application in complete test mode
+ * Simulates all external services and runs a quick test
+ */
+async function runTestMode(): Promise<void> {
+  try {
+    // Simulate test data
+    const testFriends = [
+      {
+        name: 'John Doe',
+        birthdate: new Date().toISOString().split('T')[0], // Today's date
+        motherTongue: 'English',
+        whatsappNumber: '+1234567890',
+        country: 'United States'
+      },
+      {
+        name: 'Maria Garcia',
+        birthdate: new Date().toISOString().split('T')[0], // Today's date
+        motherTongue: 'Spanish',
+        whatsappNumber: '+9876543210',
+        country: 'Mexico'
+      }
+    ];
+
+    logger.info('Main', `Found ${testFriends.length} friends with birthdays today (simulated)`);
+
+    // Simulate message generation and sending
+    for (const friend of testFriends) {
+      // Simulate message generation
+      const simulatedMessage = `🎉 Happy Birthday ${friend.name}! 🎂\n\nWishing you a wonderful day filled with joy, laughter, and all your favorite things! May this new year of your life bring you happiness, success, and countless beautiful memories.\n\nHave an amazing celebration! 🥳✨`;
+      
+      logger.info('Main', `[TEST MODE] Generated birthday message for ${friend.name}`, {
+        recipient: friend.name,
+        language: friend.motherTongue,
+        messageLength: simulatedMessage.length
+      });
+
+      // Simulate WhatsApp message sending
+      const messageId = `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      logger.info('Main', `[TEST MODE] Simulated WhatsApp message sent to ${friend.name}`, {
+        recipient: friend.whatsappNumber,
+        messageId,
+        success: true
+      });
+
+      // Small delay between messages
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    logger.info('Main', '✅ Test mode completed successfully!');
+    logger.info('Main', '📋 Summary:');
+    logger.info('Main', `   • Found ${testFriends.length} friends with birthdays today`);
+    logger.info('Main', `   • Generated ${testFriends.length} personalized messages`);
+    logger.info('Main', `   • Simulated sending ${testFriends.length} WhatsApp messages`);
+    logger.info('Main', '');
+    logger.info('Main', '🔧 To run with real services:');
+    logger.info('Main', '   1. Set COMPLETE_TEST_MODE=false in .env');
+    logger.info('Main', '   2. Enable Google Sheets API in Google Cloud Console');
+    logger.info('Main', '   3. Share your Google Sheet with the service account');
+    logger.info('Main', '   4. Set WHATSAPP_TEST_MODE=false to use real WhatsApp');
+    logger.info('Main', '');
+    logger.info('Main', '🎯 Application will now exit. In production, it would schedule daily runs at 4 AM IST.');
+
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.critical('Main', 'Test mode failed', { error: errorMessage });
     throw error;
   }
 }

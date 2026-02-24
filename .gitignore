@@ -94,3 +94,13 @@ pids
 
 # TernJS port file
 .tern-port
+# Railway deployment
+.railway/
+
+# Keep .env.production as template for Railway
+# .env.production
+
+# Puppeteer cache (for WhatsApp Web)
+node_modules/.cache/puppeteer/
+.config/google-chrome/
+.config/chromium/

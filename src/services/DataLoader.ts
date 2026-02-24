@@ -217,16 +217,183 @@ export class DataLoader {
     // Map country to timezone using timezone utilities
     const timezone = getTimezoneForCountry(rawFriend.country);
 
+    // Auto-format phone number to E.164 format
+    let whatsappNumber = rawFriend.whatsappNumber.trim();
+    
+    // Debug logging to see the original number
+    logger.info('DataLoader', `Processing phone number for ${rawFriend.name}: "${whatsappNumber}" (country: ${rawFriend.country})`);
+    
+    whatsappNumber = this.formatPhoneNumber(whatsappNumber, rawFriend.country.trim());
+
     return {
       id: `friend-${rowNumber}`,
       name: rawFriend.name.trim(),
       birthdate,
       motherTongue: rawFriend.motherTongue.trim(),
-      whatsappNumber: rawFriend.whatsappNumber.trim(),
+      whatsappNumber,
       country: rawFriend.country.trim(),
       timezone,
     };
   }
+
+  /**
+   * Formats phone number to E.164 format based on country
+   * 
+   * Automatically adds country code prefix if missing:
+   * - India: +91
+   * - United States: +1
+   * - United Kingdom: +44
+   * - And more...
+   * 
+   * @param phoneNumber - Raw phone number from Google Sheets
+   * @param country - Country name
+   * @returns Phone number in E.164 format
+   */
+  /**
+     * Formats phone number to E.164 format based on country
+     * 
+     * Automatically adds country code prefix if missing:
+     * - India: +91
+     * - United States: +1
+     * - United Kingdom: +44
+     * - And more...
+     * 
+     * @param phoneNumber - Raw phone number from Google Sheets
+     * @param country - Country name
+     * @returns Phone number in E.164 format
+     */
+    private formatPhoneNumber(phoneNumber: string, country: string): string {
+      // If already in E.164 format, return as-is
+      if (phoneNumber.startsWith('+')) {
+        return phoneNumber;
+      }
+
+      // Remove any non-digit characters except +
+      let cleanNumber = phoneNumber.replace(/[^\d+]/g, '');
+
+      // Country code mapping
+      const countryCodeMap: { [key: string]: string } = {
+        'india': '+91',
+        'united states': '+1',
+        'usa': '+1',
+        'us': '+1',
+        'united kingdom': '+44',
+        'uk': '+44',
+        'canada': '+1',
+        'australia': '+61',
+        'germany': '+49',
+        'france': '+33',
+        'japan': '+81',
+        'china': '+86',
+        'brazil': '+55',
+        'mexico': '+52',
+        'russia': '+7',
+        'south korea': '+82',
+        'italy': '+39',
+        'spain': '+34',
+        'netherlands': '+31',
+        'sweden': '+46',
+        'norway': '+47',
+        'denmark': '+45',
+        'finland': '+358',
+        'switzerland': '+41',
+        'austria': '+43',
+        'belgium': '+32',
+        'portugal': '+351',
+        'greece': '+30',
+        'turkey': '+90',
+        'israel': '+972',
+        'south africa': '+27',
+        'egypt': '+20',
+        'nigeria': '+234',
+        'kenya': '+254',
+        'ghana': '+233',
+        'singapore': '+65',
+        'malaysia': '+60',
+        'thailand': '+66',
+        'philippines': '+63',
+        'indonesia': '+62',
+        'vietnam': '+84',
+        'pakistan': '+92',
+        'bangladesh': '+880',
+        'sri lanka': '+94',
+        'nepal': '+977',
+        'myanmar': '+95',
+        'afghanistan': '+93',
+        'iran': '+98',
+        'iraq': '+964',
+        'saudi arabia': '+966',
+        'uae': '+971',
+        'united arab emirates': '+971',
+        'qatar': '+974',
+        'kuwait': '+965',
+        'bahrain': '+973',
+        'oman': '+968',
+        'jordan': '+962',
+        'lebanon': '+961',
+        'syria': '+963',
+        'yemen': '+967'
+      };
+
+      // Get country code
+      const countryLower = country.toLowerCase();
+      const countryCode = countryCodeMap[countryLower] || '+91'; // Default to India
+      const countryCodeDigits = countryCode.substring(1); // Remove the + sign
+
+      // Special handling for Indian numbers
+      if (countryLower === 'india') {
+        // Indian mobile numbers are typically 10 digits (without country code)
+        // If the number is exactly 10 digits, add country code
+        if (cleanNumber.length === 10) {
+          const result = `${countryCode}${cleanNumber}`;
+          logger.info('DataLoader', `Added country code to 10-digit Indian number: ${cleanNumber} -> ${result}`);
+          return result;
+        }
+
+        // If number starts with 91 and is 12 digits total, it already has country code
+        if (cleanNumber.startsWith('91') && cleanNumber.length === 12) {
+          const result = `+${cleanNumber}`;
+          logger.info('DataLoader', `Indian number already has country code: ${cleanNumber} -> ${result}`);
+          return result;
+        }
+
+        // If number starts with 91 but is only 10 digits, it's missing the country code
+        if (cleanNumber.startsWith('91') && cleanNumber.length === 10) {
+          const result = `${countryCode}${cleanNumber}`;
+          logger.info('DataLoader', `Added country code to Indian number starting with 91: ${cleanNumber} -> ${result}`);
+          return result;
+        }
+      }
+
+      // General logic for other countries
+      // Check if the number already starts with the country code (without +)
+      if (cleanNumber.startsWith(countryCodeDigits)) {
+        // Number already has country code, just add the + prefix
+        const result = `+${cleanNumber}`;
+
+        // Validate the final number length (E.164 should be 7-15 digits after +)
+        const totalDigits = cleanNumber.length;
+        if (totalDigits < 7 || totalDigits > 15) {
+          logger.error('DataLoader', `Invalid phone number length for ${cleanNumber}: ${totalDigits} digits (expected 7-15)`);
+        }
+
+        return result;
+      }
+
+      // Remove leading zeros from the number
+      const numberWithoutLeadingZeros = cleanNumber.replace(/^0+/, '');
+
+      // Add country code
+      const result = `${countryCode}${numberWithoutLeadingZeros}`;
+
+      // Validate the final number length
+      const totalDigits = countryCodeDigits.length + numberWithoutLeadingZeros.length;
+      if (totalDigits < 7 || totalDigits > 15) {
+        logger.error('DataLoader', `Invalid phone number length for ${result}: ${totalDigits} digits (expected 7-15)`);
+      }
+
+      return result;
+    }
 
   /**
    * Logs validation error for an invalid friend record
