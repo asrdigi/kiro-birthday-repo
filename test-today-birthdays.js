@@ -10,10 +10,10 @@ require('dotenv').config();
 const {
     initializeDatabase,
     GoogleSheetsClient,
-    DataLoader,
-    MessageGenerator,
-    WhatsAppClient
+    DataLoader
 } = require('./dist/services');
+const { MessageGeneratorFactory } = require('./dist/services/MessageGeneratorFactory');
+const { TwilioWhatsAppClient: WhatsAppClient } = require('./dist/services/TwilioWhatsAppClient');
 
 async function testTodayBirthdays() {
     console.log('🧪 Testing Today\'s Birthdays (Feb 23, 2026)');
@@ -57,7 +57,7 @@ async function testTodayBirthdays() {
         // Initialize MessageGenerator and WhatsApp client
         console.log('');
         console.log('🤖 Initializing MessageGenerator...');
-        const messageGenerator = new MessageGenerator();
+        const messageGenerator = MessageGeneratorFactory.create();
         await messageGenerator.initialize();
 
         console.log('📱 Initializing WhatsApp client...');

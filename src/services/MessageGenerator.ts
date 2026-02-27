@@ -106,36 +106,64 @@ export class MessageGenerator {
 - Use emojis that enhance the message, don't overdo it`
       : '- Do NOT include any emojis or special characters';
     
+    // Language-specific examples for better grammar and structure
+    const languageExamples: { [key: string]: string } = {
+      'te': useEmojis 
+        ? `- "హాయ్! 🎉 పుట్టినరోజు శుభాకాంక్షలు! నీ రోజు చాలా సంతోషంగా గడవాలని కోరుకుంటున్నాను. 🎂"
+- "పుట్టినరోజు శుభాకాంక్షలు! 🎊 ఈ రోజు నీకు చాలా స్పెషల్‌గా ఉండాలని కోరుకుంటున్నాను. 🎈"
+- "హ్యాపీ బర్త్‌డే! 🎁 నీ జీవితంలో ఇంకా చాలా సంతోషాలు రావాలని కోరుకుంటున్నాను. ✨"`
+        : `- "హాయ్! పుట్టినరోజు శుభాకాంక్షలు! నీ రోజు చాలా సంతోషంగా గడవాలని కోరుకుంటున్నాను."
+- "పుట్టినరోజు శుభాకాంక్షలు! ఈ రోజు నీకు చాలా స్పెషల్‌గా ఉండాలని కోరుకుంటున్నాను."
+- "హ్యాపీ బర్త్‌డే! నీ జీవితంలో ఇంకా చాలా సంతోషాలు రావాలని కోరుకుంటున్నాను."`,
+      'hi': useEmojis
+        ? `- "हैप्पी बर्थडे! 🎉 तुम्हारा दिन बहुत खास हो। खूब मजे करो! 🎂"
+- "जन्मदिन मुबारक! 🎊 आज का दिन तुम्हारे लिए बहुत अच्छा हो। 🎈"
+- "बर्थडे विशेज! 🎁 तुम्हारी जिंदगी में खुशियां ही खुशियां हों। ✨"`
+        : `- "हैप्पी बर्थडे! तुम्हारा दिन बहुत खास हो। खूब मजे करो!"
+- "जन्मदिन मुबारक! आज का दिन तुम्हारे लिए बहुत अच्छा हो।"
+- "बर्थडे विशेज! तुम्हारी जिंदगी में खुशियां ही खुशियां हों।"`,
+      'en': useEmojis
+        ? `- "Hey! 🎉 Happy birthday! Hope you have an awesome day filled with fun and laughter. 🎂"
+- "Happy birthday! 🎊 Wishing you all the best today and always. Have a great one! 🎈"
+- "Birthday wishes! 🎁 Hope this year brings you lots of happiness and success. ✨"`
+        : `- "Hey! Happy birthday! Hope you have an awesome day filled with fun and laughter."
+- "Happy birthday! Wishing you all the best today and always. Have a great one!"
+- "Birthday wishes! Hope this year brings you lots of happiness and success."`
+    };
+    
+    const examples = languageExamples[language] || languageExamples['en'];
+    
     return `Generate a heartfelt, natural birthday message for ${name} in ${fullLanguageName}.
 
-IMPORTANT - Message Style:
-- Write like a close friend, NOT like a formal greeting card
-- Use simple, everyday language that feels genuine and personal
-- Sound natural and conversational, as if you're speaking directly to them
-- Avoid flowery, poetic, or overly formal language
+CRITICAL REQUIREMENTS:
+- You MUST be a native ${fullLanguageName} speaker with perfect grammar
+- Write ONLY grammatically correct, natural ${fullLanguageName}
+- Use proper sentence structure and word order for ${fullLanguageName}
+- Avoid direct translations from English - think in ${fullLanguageName}
+- Use common, everyday expressions that native speakers actually use
 - Keep it short and sweet (2-3 sentences maximum)
-- Express genuine warmth without being dramatic
+
+TONE AND STYLE:
+- Write like a close friend texting, NOT a formal greeting card
+- Use simple, conversational language
+- Sound warm and genuine, not artificial or overly poetic
+- Be casual and friendly, like you're speaking directly to them
 
 ${emojiGuidance}
 
-Requirements:
-- Write in natural, conversational ${fullLanguageName}
-- Use casual, friendly tone (like texting a good friend)
-- Avoid phrases like "May your day be filled with..." or "Wishing you endless..."
-- Instead use simple expressions like "Hope you have an amazing day!" or "Enjoy your special day!"
-- Be warm but not overly sentimental
-- End with a signature: "- ${senderName}"
-- Make it feel personal and authentic, not AI-generated
+MESSAGE STRUCTURE:
+1. Greeting + Birthday wish (1 sentence)
+2. Personal wish or hope for their day (1 sentence)
+3. Signature: "- ${senderName}"
 
-Examples of the tone to aim for${useEmojis ? ' (with emojis)' : ''}:
-${useEmojis 
-  ? `- "Hey! 🎉 Happy birthday! Hope you have an awesome day filled with fun and laughter. 🎂"
-- "Happy birthday! 🎊 Wishing you all the best today and always. Have a great one! 🎈"
-- "Birthday wishes! 🎁 Hope this year brings you lots of happiness and success. ✨"`
-  : `- "Hey! Happy birthday! Hope you have an awesome day filled with fun and laughter."
-- "Happy birthday! Wishing you all the best today and always. Have a great one!"
-- "Birthday wishes! Hope this year brings you lots of happiness and success."`
-}
+IMPORTANT - Grammar Check:
+- Double-check verb conjugations are correct for ${fullLanguageName}
+- Ensure proper use of pronouns and honorifics (if applicable)
+- Use natural word order for ${fullLanguageName}
+- Avoid awkward or unnatural phrasing
+
+Examples of correct ${fullLanguageName} messages:
+${examples}
 
 Generate ONLY the birthday message with the signature, nothing else.`;
   }
@@ -157,15 +185,15 @@ Generate ONLY the birthday message with the signature, nothing else.`;
         messages: [
           {
             role: 'system',
-            content: 'You are a close friend writing a birthday message. Write naturally and casually, like you\'re texting a good friend. Avoid formal, flowery, or poetic language. Keep it simple, warm, and genuine. Sound like a real person, not an AI.',
+            content: 'You are a native speaker writing a birthday message to a close friend in their mother tongue. Your grammar must be PERFECT and natural. Write as if you are fluent in the language, using proper sentence structure, correct verb forms, and natural expressions. Avoid awkward translations or unnatural phrasing. Sound like a real person texting a friend, not an AI or translator.',
           },
           {
             role: 'user',
             content: prompt,
           },
         ],
-        temperature: 0.8, // Slightly higher for more natural variation
-        max_tokens: 300, // Reduced since we want shorter, punchier messages
+        temperature: 0.7, // Balanced for natural variation with consistency
+        max_tokens: 300,
       });
 
       const message = response.choices[0]?.message?.content?.trim();

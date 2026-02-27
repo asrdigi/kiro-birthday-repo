@@ -11,6 +11,7 @@
 import cron from 'node-cron';
 import { DataLoader } from './DataLoader';
 import { MessageGenerator } from './MessageGenerator';
+import { IMessageGenerator } from './MessageGeneratorFactory';
 import type { IWhatsAppClient } from './IWhatsAppClient';
 import { StateManager } from './StateManager';
 import { Friend } from '../models/types';
@@ -28,7 +29,7 @@ import { logger } from '../utils/logger';
  */
 export class Scheduler {
   private dataLoader: DataLoader;
-  private messageGenerator: MessageGenerator;
+  private messageGenerator: IMessageGenerator;
   private whatsappClient: IWhatsAppClient;
   private stateManager: StateManager;
   private cronJob: cron.ScheduledTask | null = null;
@@ -44,7 +45,7 @@ export class Scheduler {
    */
   constructor(
     dataLoader: DataLoader,
-    messageGenerator: MessageGenerator,
+    messageGenerator: IMessageGenerator,
     whatsappClient: IWhatsAppClient,
     stateManager: StateManager
   ) {

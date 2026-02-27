@@ -22,9 +22,9 @@ import {
   closeDatabase,
   StateManager,
   GoogleSheetsClient,
-  DataLoader,
-  MessageGenerator
+  DataLoader
 } from './services';
+import { MessageGeneratorFactory } from './services/MessageGeneratorFactory';
 import { TwilioWhatsAppClient as WhatsAppClient } from './services/TwilioWhatsAppClient';
 import { Scheduler } from './services/Scheduler';
 
@@ -122,7 +122,7 @@ async function main() {
 
     // Step 6: Initialize MessageGenerator
     logger.info('Main', 'Initializing MessageGenerator...');
-    const messageGenerator = new MessageGenerator();
+    const messageGenerator = MessageGeneratorFactory.create();
     await messageGenerator.initialize();
     logger.info('Main', 'MessageGenerator initialized successfully');
 

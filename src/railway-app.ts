@@ -9,9 +9,9 @@ import {
   closeDatabase,
   StateManager,
   GoogleSheetsClient,
-  DataLoader,
-  MessageGenerator
+  DataLoader
 } from './services';
+import { MessageGeneratorFactory } from './services/MessageGeneratorFactory';
 import { TwilioWhatsAppClient as WhatsAppClient } from './services/TwilioWhatsAppClient';
 import { Scheduler } from './services/Scheduler';
 import { logger } from './utils/logger';
@@ -101,7 +101,7 @@ class RailwayApp {
 
       // Initialize MessageGenerator
       logger.info('RailwayApp', 'Initializing MessageGenerator...');
-      const messageGenerator = new MessageGenerator();
+      const messageGenerator = MessageGeneratorFactory.create();
       await messageGenerator.initialize();
 
       // Initialize WhatsAppClient
