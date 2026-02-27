@@ -10,9 +10,9 @@ import {
   StateManager,
   GoogleSheetsClient,
   DataLoader,
-  MessageGenerator,
-  WhatsAppClient
+  MessageGenerator
 } from './services';
+import { TwilioWhatsAppClient as WhatsAppClient } from './services/TwilioWhatsAppClient';
 import { Scheduler } from './services/Scheduler';
 import { logger } from './utils/logger';
 
@@ -60,7 +60,10 @@ class RailwayApp {
       'GOOGLE_SERVICE_ACCOUNT_EMAIL',
       'GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY',
       'GOOGLE_SHEET_ID',
-      'OPENAI_API_KEY'
+      'OPENAI_API_KEY',
+      'TWILIO_ACCOUNT_SID',
+      'TWILIO_AUTH_TOKEN',
+      'TWILIO_WHATSAPP_FROM'
     ];
 
     const missingVars: string[] = [];

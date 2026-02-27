@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Scheduler } from './Scheduler';
 import { DataLoader } from './DataLoader';
 import { MessageGenerator } from './MessageGenerator';
-import { WhatsAppClient } from './WhatsAppClient';
+import { TwilioWhatsAppClient } from './TwilioWhatsAppClient';
 import { StateManager } from './StateManager';
 import { Friend, DeliveryResult } from '../models/types';
 
@@ -39,7 +39,7 @@ describe('Scheduler', () => {
   let scheduler: Scheduler;
   let mockDataLoader: DataLoader;
   let mockMessageGenerator: MessageGenerator;
-  let mockWhatsAppClient: WhatsAppClient;
+  let mockWhatsAppClient: TwilioWhatsAppClient;
   let mockStateManager: StateManager;
 
   const mockFriend: Friend = {

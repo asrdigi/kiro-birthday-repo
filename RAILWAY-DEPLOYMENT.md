@@ -1,12 +1,23 @@
 # 🚀 Railway Deployment Guide
 
-Deploy your Birthday WhatsApp Messenger to Railway cloud platform for 24/7 operation.
+Deploy your Birthday WhatsApp Messenger to Railway cloud platform for 24/7 autonomous operation using Twilio WhatsApp API.
 
 ## 📋 Prerequisites
 
 1. **Railway Account**: Sign up at [railway.app](https://railway.app)
 2. **GitHub Repository**: Push your code to GitHub
-3. **Environment Variables**: Prepare your production environment variables
+3. **Twilio Account**: Configured with WhatsApp sandbox or production access
+4. **Environment Variables**: Prepare your production environment variables
+
+## 🎯 What's New: Twilio WhatsApp Integration
+
+This application now uses **Twilio WhatsApp API** instead of whatsapp-web.js:
+- ✅ **No QR Code Authentication** - Fully autonomous cloud deployment
+- ✅ **API-Based** - Stateless, reliable, scalable
+- ✅ **Cost-Effective** - ~₹0.42 per message (₹21-84/year for 50-200 messages)
+- ✅ **Railway Compatible** - Works perfectly on cloud platforms
+
+For detailed Twilio-specific deployment instructions, see [RAILWAY-TWILIO-DEPLOYMENT.md](./RAILWAY-TWILIO-DEPLOYMENT.md)
 
 ## 🔧 Step 1: Prepare Your Repository
 

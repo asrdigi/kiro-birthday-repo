@@ -1,23 +1,35 @@
 # Birthday WhatsApp Messenger
 
-An automated system that sends personalized birthday wishes to friends via WhatsApp. The system reads friend data from Google Sheets, generates culturally appropriate messages in each friend's mother tongue using ChatGPT, and sends them via WhatsApp once daily at 4 AM IST.
+An automated system that sends personalized birthday wishes to friends via WhatsApp. The system reads friend data from Google Sheets, generates culturally appropriate messages in each friend's mother tongue using ChatGPT, and sends them via **Twilio WhatsApp API** - enabling fully autonomous cloud deployment without QR code authentication.
 
 ## Features
 
 - 📊 Reads friend data from Google Sheets
 - 🌍 Handles multiple timezones based on country of residence
 - 🤖 Generates personalized messages using ChatGPT in the recipient's mother tongue
-- 💬 Sends messages via WhatsApp Web
+- 💬 Sends messages via **Twilio WhatsApp API** (cloud-native, no QR codes!)
 - 🔄 Prevents duplicate messages with SQLite tracking
 - ⏰ Runs automatically once daily at 4:00 AM IST
 - 🔒 Secure credential management via environment variables
+- ☁️ **Fully autonomous deployment on Railway** - no local computer needed!
+
+## What's New: Twilio WhatsApp Integration
+
+This application now uses **Twilio WhatsApp API** instead of whatsapp-web.js:
+
+- ✅ **No QR Code Authentication** - Fully autonomous cloud deployment
+- ✅ **API-Based** - Stateless, reliable, scalable
+- ✅ **Cost-Effective** - ~₹0.42 per message (₹21-84/year for 50-200 messages)
+- ✅ **Railway Compatible** - Works perfectly on cloud platforms
+- ✅ **Zero Maintenance** - No browser sessions, no QR code refreshing
 
 ## Prerequisites
 
 - Node.js 18+ and npm
-- Google Cloud Platform account with Sheets API enabled
+- Google Cloud Platform account with Sheets API enabled (Service Account)
 - OpenAI API key
-- WhatsApp account for sending messages
+- **Twilio account with WhatsApp API access** (free sandbox for testing)
+- Railway account (optional, for cloud deployment)
 
 ## Installation
 
@@ -34,10 +46,13 @@ cp .env.example .env
 ```
 
 3. Edit `.env` and add your credentials:
-   - Google Sheets API credentials (OAuth 2.0)
+   - Google Service Account credentials (email and private key)
    - Google Sheet ID containing friend data
    - OpenAI API key
+   - **Twilio WhatsApp API credentials** (Account SID, Auth Token, From Number)
    - Configure other settings as needed
+
+See [TWILIO-SETUP-GUIDE.md](./TWILIO-SETUP-GUIDE.md) for detailed Twilio configuration instructions.
 
 ## Google Sheets Setup
 
@@ -1176,3 +1191,107 @@ index.ts
 They make your code cleaner, more organized, and easier to maintain. Instead of remembering dozens of file paths, you just import from the folder name and the index.ts handles the rest!
 
 This is a professional development pattern used in most TypeScript/JavaScript projects. Your friend will appreciate this clean, organized structure!
+
+
+## Cost Information
+
+### Twilio WhatsApp API Pricing
+
+- **Sandbox (Testing)**: $0.00 - Free for development and testing
+- **Production**: ~$0.005 per message (₹0.42 per message)
+
+### Annual Cost Estimates
+
+| Messages/Year | Cost (USD) | Cost (INR) |
+|---------------|------------|------------|
+| 50 messages   | $0.25      | ₹21        |
+| 100 messages  | $0.50      | ₹42        |
+| 200 messages  | $1.00      | ₹84        |
+
+**Well within ₹100/year budget!**
+
+## Cloud Deployment
+
+### Deploy to Railway
+
+This application is designed to run autonomously on Railway:
+
+1. **Quick Start**: See [RAILWAY-TWILIO-DEPLOYMENT.md](./RAILWAY-TWILIO-DEPLOYMENT.md)
+2. **Checklist**: Use [RAILWAY-DEPLOYMENT-CHECKLIST.md](./RAILWAY-DEPLOYMENT-CHECKLIST.md)
+3. **General Guide**: See [RAILWAY-DEPLOYMENT.md](./RAILWAY-DEPLOYMENT.md)
+
+### Benefits of Cloud Deployment
+
+- ✅ Runs 24/7 without your computer
+- ✅ No QR code authentication needed
+- ✅ Automatic restarts on failures
+- ✅ Scalable and reliable
+- ✅ Free tier available on Railway
+
+## Documentation
+
+- **[TWILIO-SETUP-GUIDE.md](./TWILIO-SETUP-GUIDE.md)** - Set up Twilio WhatsApp API
+- **[RAILWAY-TWILIO-DEPLOYMENT.md](./RAILWAY-TWILIO-DEPLOYMENT.md)** - Deploy to Railway
+- **[RAILWAY-DEPLOYMENT-CHECKLIST.md](./RAILWAY-DEPLOYMENT-CHECKLIST.md)** - Deployment checklist
+- **[TWILIO-MIGRATION-STATUS.md](./TWILIO-MIGRATION-STATUS.md)** - Migration status and notes
+- **[SETUP-GUIDE.md](./SETUP-GUIDE.md)** - General setup instructions
+
+## Testing
+
+### Test Twilio Integration
+
+```bash
+# Build the project
+npm run build
+
+# Test Twilio sandbox (requires Twilio account)
+node test-twilio-sandbox.js +91xxxxxxxxxx
+
+# Test full birthday workflow
+node test-today-birthdays.js
+```
+
+## Architecture
+
+### Services
+
+- **DataLoader**: Loads friend data from Google Sheets
+- **MessageGenerator**: Generates personalized messages using OpenAI
+- **TwilioWhatsAppClient**: Sends messages via Twilio WhatsApp API
+- **Scheduler**: Manages daily execution at 4 AM IST
+- **StateManager**: Tracks sent messages to prevent duplicates
+- **Logger**: Centralized logging with timestamps
+
+### Key Features
+
+- **Retry Logic**: Exponential backoff for transient failures (1s, 2s, 4s)
+- **Error Handling**: Graceful error isolation - individual failures don't crash the app
+- **Phone Validation**: E.164 format validation before sending
+- **Test Mode**: Simulate sending without API calls for testing
+- **Sandbox Mode**: Free testing with Twilio sandbox
+
+## Troubleshooting
+
+### Common Issues
+
+**"Missing required Twilio environment variables"**
+- Solution: Check all three Twilio variables are set in .env
+
+**"Authentication failed"**
+- Solution: Verify TWILIO_AUTH_TOKEN is correct
+
+**"Invalid phone number format"**
+- Solution: Ensure phone numbers are in E.164 format (+91xxxxxxxxxx)
+
+See [TWILIO-SETUP-GUIDE.md](./TWILIO-SETUP-GUIDE.md) for more troubleshooting help.
+
+## License
+
+MIT
+
+## Support
+
+For issues or questions:
+1. Check the documentation files listed above
+2. Review [Twilio WhatsApp API Docs](https://www.twilio.com/docs/whatsapp)
+3. Check [Railway Documentation](https://docs.railway.app/)

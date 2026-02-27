@@ -10,4 +10,8 @@ export { GoogleSheetsClient } from './GoogleSheetsClient';
 export { DataLoader } from './DataLoader';
 export { OpenAIClient, getOpenAIClient } from './OpenAIClient';
 export { MessageGenerator } from './MessageGenerator';
-export { WhatsAppClient } from './WhatsAppClient';
+export { TwilioWhatsAppClient } from './TwilioWhatsAppClient';
+
+// Export TwilioWhatsAppClient as WhatsAppClient for backward compatibility
+// This allows test scripts to work without modifications
+export { TwilioWhatsAppClient as WhatsAppClient } from './TwilioWhatsAppClient';

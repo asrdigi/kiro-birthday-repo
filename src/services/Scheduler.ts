@@ -11,7 +11,7 @@
 import cron from 'node-cron';
 import { DataLoader } from './DataLoader';
 import { MessageGenerator } from './MessageGenerator';
-import { WhatsAppClient } from './WhatsAppClient';
+import type { IWhatsAppClient } from './IWhatsAppClient';
 import { StateManager } from './StateManager';
 import { Friend } from '../models/types';
 import { isBirthdayToday } from '../utils/timezone';
@@ -29,7 +29,7 @@ import { logger } from '../utils/logger';
 export class Scheduler {
   private dataLoader: DataLoader;
   private messageGenerator: MessageGenerator;
-  private whatsappClient: WhatsAppClient;
+  private whatsappClient: IWhatsAppClient;
   private stateManager: StateManager;
   private cronJob: cron.ScheduledTask | null = null;
   private dataRefreshJob: cron.ScheduledTask | null = null;
@@ -45,7 +45,7 @@ export class Scheduler {
   constructor(
     dataLoader: DataLoader,
     messageGenerator: MessageGenerator,
-    whatsappClient: WhatsAppClient,
+    whatsappClient: IWhatsAppClient,
     stateManager: StateManager
   ) {
     this.dataLoader = dataLoader;
