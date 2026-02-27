@@ -91,20 +91,53 @@ export class MessageGenerator {
     
     const fullLanguageName = languageMap[language] || language;
     
-    return `Generate a complete, warm birthday message for ${name} in ${fullLanguageName}.
+    // Get sender name from environment variable (default to "Your Friend" if not set)
+    const senderName = process.env.SENDER_NAME || 'Your Friend';
+    
+    // Get custom message style from environment (default to warm and personal)
+    const messageStyle = process.env.MESSAGE_STYLE || 'casual';
+    
+    // Check if emojis should be included (default to true)
+    const useEmojis = process.env.USE_EMOJIS !== 'false';
+    
+    const emojiGuidance = useEmojis 
+      ? `- Include 2-3 relevant emojis throughout the message (birthday cake 🎂, party 🎉, celebration 🎊, balloon 🎈, gift 🎁, sparkles ✨, etc.)
+- Place emojis naturally within the text, not all at the beginning or end
+- Use emojis that enhance the message, don't overdo it`
+      : '- Do NOT include any emojis or special characters';
+    
+    return `Generate a heartfelt, natural birthday message for ${name} in ${fullLanguageName}.
+
+IMPORTANT - Message Style:
+- Write like a close friend, NOT like a formal greeting card
+- Use simple, everyday language that feels genuine and personal
+- Sound natural and conversational, as if you're speaking directly to them
+- Avoid flowery, poetic, or overly formal language
+- Keep it short and sweet (2-3 sentences maximum)
+- Express genuine warmth without being dramatic
+
+${emojiGuidance}
 
 Requirements:
-- Write exactly 2-3 complete sentences
-- Use natural, conversational ${fullLanguageName} language
-- Express genuine warmth and friendship
-- End with proper punctuation (period, exclamation mark, etc.)
-- Make sure the message is COMPLETE and not cut off
-- Be culturally appropriate for ${fullLanguageName} speakers
-- Do not include emojis or special formatting
+- Write in natural, conversational ${fullLanguageName}
+- Use casual, friendly tone (like texting a good friend)
+- Avoid phrases like "May your day be filled with..." or "Wishing you endless..."
+- Instead use simple expressions like "Hope you have an amazing day!" or "Enjoy your special day!"
+- Be warm but not overly sentimental
+- End with a signature: "- ${senderName}"
+- Make it feel personal and authentic, not AI-generated
 
-Important: Generate the COMPLETE message. Do not truncate or cut off the message.
+Examples of the tone to aim for${useEmojis ? ' (with emojis)' : ''}:
+${useEmojis 
+  ? `- "Hey! 🎉 Happy birthday! Hope you have an awesome day filled with fun and laughter. 🎂"
+- "Happy birthday! 🎊 Wishing you all the best today and always. Have a great one! 🎈"
+- "Birthday wishes! 🎁 Hope this year brings you lots of happiness and success. ✨"`
+  : `- "Hey! Happy birthday! Hope you have an awesome day filled with fun and laughter."
+- "Happy birthday! Wishing you all the best today and always. Have a great one!"
+- "Birthday wishes! Hope this year brings you lots of happiness and success."`
+}
 
-Generate only the birthday message text, nothing else.`;
+Generate ONLY the birthday message with the signature, nothing else.`;
   }
 
   /**
@@ -124,15 +157,15 @@ Generate only the birthday message text, nothing else.`;
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful assistant that generates warm, culturally appropriate birthday messages in various languages. Always generate complete messages that end with proper punctuation.',
+            content: 'You are a close friend writing a birthday message. Write naturally and casually, like you\'re texting a good friend. Avoid formal, flowery, or poetic language. Keep it simple, warm, and genuine. Sound like a real person, not an AI.',
           },
           {
             role: 'user',
             content: prompt,
           },
         ],
-        temperature: 0.7,
-        max_tokens: 500, // Increased further for non-English languages like Telugu
+        temperature: 0.8, // Slightly higher for more natural variation
+        max_tokens: 300, // Reduced since we want shorter, punchier messages
       });
 
       const message = response.choices[0]?.message?.content?.trim();
