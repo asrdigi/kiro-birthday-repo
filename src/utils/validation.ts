@@ -12,7 +12,7 @@ import { Friend, ValidationResult } from '../models/types';
  * 
  * Accepts the following formats:
  * - YYYY-MM-DD (e.g., "1990-05-15")
- * - MM/DD/YYYY (e.g., "05/15/1990")
+ * - DD/MM/YYYY (e.g., "15/05/1990") - PREFERRED FORMAT
  * - DD-MM-YYYY (e.g., "15-05-1990")
  * 
  * @param dateString - The date string to validate
@@ -27,9 +27,9 @@ export function validateBirthdate(dateString: string): boolean {
 
   // Pattern 1: YYYY-MM-DD
   const pattern1 = /^(\d{4})-(\d{2})-(\d{2})$/;
-  // Pattern 2: MM/DD/YYYY
+  // Pattern 2: DD/MM/YYYY (with slashes)
   const pattern2 = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-  // Pattern 3: DD-MM-YYYY
+  // Pattern 3: DD-MM-YYYY (with dashes)
   const pattern3 = /^(\d{2})-(\d{2})-(\d{4})$/;
 
   let year: number, month: number, day: number;
@@ -44,12 +44,12 @@ export function validateBirthdate(dateString: string): boolean {
     month = parseInt(match1[2], 10);
     day = parseInt(match1[3], 10);
   } else if (match2) {
-    // MM/DD/YYYY
-    month = parseInt(match2[1], 10);
-    day = parseInt(match2[2], 10);
+    // DD/MM/YYYY (with slashes)
+    day = parseInt(match2[1], 10);
+    month = parseInt(match2[2], 10);
     year = parseInt(match2[3], 10);
   } else if (match3) {
-    // DD-MM-YYYY
+    // DD-MM-YYYY (with dashes)
     day = parseInt(match3[1], 10);
     month = parseInt(match3[2], 10);
     year = parseInt(match3[3], 10);
@@ -161,8 +161,8 @@ export function validateFriendRecord(record: Partial<Friend>): ValidationResult 
  * 
  * Accepts the same formats as validateBirthdate:
  * - YYYY-MM-DD
- * - MM/DD/YYYY
- * - DD-MM-YYYY
+ * - DD/MM/YYYY (with slashes) - PREFERRED FORMAT
+ * - DD-MM-YYYY (with dashes)
  * 
  * @param dateString - The date string to parse
  * @returns Date object if valid, null if invalid
@@ -187,10 +187,12 @@ export function parseBirthdate(dateString: string): Date | null {
     month = parseInt(match1[2], 10);
     day = parseInt(match1[3], 10);
   } else if (match2) {
-    month = parseInt(match2[1], 10);
-    day = parseInt(match2[2], 10);
+    // DD/MM/YYYY (with slashes)
+    day = parseInt(match2[1], 10);
+    month = parseInt(match2[2], 10);
     year = parseInt(match2[3], 10);
   } else if (match3) {
+    // DD-MM-YYYY (with dashes)
     day = parseInt(match3[1], 10);
     month = parseInt(match3[2], 10);
     year = parseInt(match3[3], 10);
