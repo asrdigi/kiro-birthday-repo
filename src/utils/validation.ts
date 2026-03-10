@@ -200,5 +200,8 @@ export function parseBirthdate(dateString: string): Date | null {
     return null;
   }
 
-  return new Date(year, month - 1, day);
+  // Use Date.UTC to create a timezone-independent date
+  // This ensures the date is always interpreted as the same calendar date
+  // regardless of the server's timezone
+  return new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
 }

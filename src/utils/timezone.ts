@@ -188,9 +188,10 @@ export function getLocalTimeForCountryAtTimestamp(
 export function isBirthdayToday(birthdate: Date, country: string): boolean {
   const localTime = getLocalTimeForCountry(country);
   
-  // Extract month and day from birthdate
-  const birthdateMonth = birthdate.getMonth() + 1; // getMonth() is 0-indexed
-  const birthdateDay = birthdate.getDate();
+  // Use UTC methods to extract month and day from birthdate
+  // This ensures timezone-independent comparison
+  const birthdateMonth = birthdate.getUTCMonth() + 1; // getUTCMonth() is 0-indexed
+  const birthdateDay = birthdate.getUTCDate();
   
   // Compare with local time's month and day
   return localTime.month === birthdateMonth && localTime.day === birthdateDay;
